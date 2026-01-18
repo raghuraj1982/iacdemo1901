@@ -1,4 +1,5 @@
-Creates: Resource Group + Storage Account + Container
+# Creates: Resource Group + Storage Account + Container
+
 resource "azurerm_resource_group" "rg" {
   name     = var.rg_name
   location = var.location
