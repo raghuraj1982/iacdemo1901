@@ -55,7 +55,9 @@ stages:
             -var="rg_name=$(TF_RG_NAME)" `
             -var="storage_account_name=$(TF_SA_NAME)" `
             -var="container_name=$(TF_CONTAINER_NAME)" `
-            -var="tags={ env=\"$(TF_ENV)\" }"
+           -var="env=$(TF_ENV)"
+
+
 
     - publish: tfplan
       artifact: tfplan

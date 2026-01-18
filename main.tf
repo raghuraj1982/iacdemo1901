@@ -12,7 +12,10 @@ resource "azurerm_storage_account" "sa" {
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  tags                     = var.tags
+  tags = {
+    env = var.env
+  }
+
 }
 
 resource "azurerm_storage_container" "container" {
