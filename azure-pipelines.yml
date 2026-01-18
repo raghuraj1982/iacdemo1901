@@ -8,6 +8,9 @@ variables:
 - group: vg-iac
 
 stages:
+# -------------------------
+# Stage 1: Validate + Plan
+# -------------------------
 - stage: PLAN
   displayName: "Terraform PLAN"
   jobs:
@@ -57,14 +60,14 @@ stages:
             -var="container_name=$(TF_CONTAINER_NAME)" `
             -var="env=$(TF_ENV)"
 
-
-
-
     - publish: tfplan
       artifact: tfplan
       displayName: "Publish tfplan artifact"
 
 
+# -------------------------
+# Stage 2: Apply (Approval)
+# -------------------------
 - stage: APPLY
   displayName: "Terraform APPLY (Approval)"
   dependsOn: PLAN
@@ -99,6 +102,26 @@ stages:
                   -backend-config="storage_account_name=$(TFSTATE_STORAGE)" `
                   -backend-config="container_name=$(TFSTATE_CONTAINER)" `
                   -backend-config="key=$(TFSTATE_KEY)"
+
+          - task: AzureCLI@2
+            displayName: "Terraform import RG if exists (safe)"
+            inputs:
+              azureSubscription: "SC-Azure-Terraform"
+              scriptType: "ps"
+              scriptLocation: "inlineScript"
+              inlineScript: |
+                $rgName = "$(TF_RG_NAME)"
+
+                # Check if RG exists in Azure
+                $exists = az group exists --name $rgName
+                if ($exists -eq "true") {
+                  $subId = az account show --query id -o tsv
+                  Write-Host "RG '$rgName' exists. Importing into Terraform state..."
+                  terraform import azurerm_resource_group.rg "/subscriptions/$subId/resourceGroups/$rgName"
+                }
+                else {
+                  Write-Host "RG '$rgName' does not exist. No import needed."
+                }
 
           - task: AzureCLI@2
             displayName: "Terraform apply (from plan)"
