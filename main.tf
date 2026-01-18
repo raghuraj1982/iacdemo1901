@@ -3,7 +3,10 @@
 resource "azurerm_resource_group" "rg" {
   name     = var.rg_name
   location = var.location
-  tags     = var.tags
+
+  tags = {
+    env = var.env
+  }
 }
 
 resource "azurerm_storage_account" "sa" {
@@ -12,10 +15,10 @@ resource "azurerm_storage_account" "sa" {
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+
   tags = {
     env = var.env
   }
-
 }
 
 resource "azurerm_storage_container" "container" {
