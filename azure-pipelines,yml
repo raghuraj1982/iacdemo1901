@@ -8,9 +8,6 @@ variables:
 - group: vg-iac
 
 stages:
-# -------------------------
-# Stage 1: Validate + Plan
-# -------------------------
 - stage: PLAN
   displayName: "Terraform PLAN"
   jobs:
@@ -19,7 +16,6 @@ stages:
     steps:
     - checkout: self
 
-    # Install Terraform on agent (Windows)
     - powershell: |
         choco install terraform -y
         terraform -version
@@ -38,10 +34,12 @@ stages:
             -backend-config="container_name=$(TFSTATE_CONTAINER)" `
             -backend-config="key=$(TFSTATE_KEY)"
 
-    - powershell: terraform fmt -check
+    - powershell: |
+        terraform fmt -check
       displayName: "Terraform fmt (check)"
 
-    - powershell: terraform validate
+    - powershell: |
+        terraform validate
       displayName: "Terraform validate"
 
     - task: AzureCLI@2
@@ -63,9 +61,7 @@ stages:
       artifact: tfplan
       displayName: "Publish tfplan artifact"
 
-# -------------------------
-# Stage 2: Apply (Approval)
-# -------------------------
+
 - stage: APPLY
   displayName: "Terraform APPLY (Approval)"
   dependsOn: PLAN
@@ -73,7 +69,7 @@ stages:
   jobs:
   - deployment: ApplyDeployment
     displayName: "Apply Terraform"
-    environment: "prod"   # Approval happens here
+    environment: "prod"
     strategy:
       runOnce:
         deploy:
